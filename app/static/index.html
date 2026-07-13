@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopIQ — Shop</title>
+<style>
+  :root {
+    --bg: #07080a;
+    --surface: #111218;
+    --border: #1c1d22;
+    --text: #eceef5;
+    --muted: #52546a;
+    --accent: #ff6b35;
+    --green: #00d4aa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+  }
+
+  .navbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo { font-size: 20px; font-weight: 700; color: var(--accent); text-decoration: none; }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+
+  .nav-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: 'Segoe UI', sans-serif;
+    border: none;
+    transition: opacity 0.2s;
+  }
+
+  .nav-btn.outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .nav-btn.primary { background: var(--accent); color: white; }
+
+  .cart-count {
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    width: 18px; height: 18px;
+    font-size: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 4px;
+  }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(123,97,255,0.08));
+    border-bottom: 1px solid var(--border);
+    padding: 48px 32px;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+
+  .hero h1 span { color: var(--accent); }
+  .hero p { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Segoe UI', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+
+  .search-btn {
+    padding: 12px 24px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .filters {
+    padding: 16px 32px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+
+  .filter-label { font-size: 12px; color: var(--muted); }
+
+  select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'Segoe UI', sans-serif;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .content { padding: 32px; max-width: 1400px; margin: 0 auto; }
+
+  .results-info {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  .product-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+    cursor: pointer;
+  }
+
+  .product-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+  }
+
+  .product-img {
+    width: 100%;
+    height: 180px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+  }
+
+  .product-body { padding: 16px; }
+
+  .product-category {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .product-name {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .product-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .product-stock {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .product-stock.low { color: #ffb830; }
+  .product-stock.out { color: #ff6b35; }
+
+  .add-btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+    transition: opacity 0.2s;
+  }
+
+  .add-btn:hover { opacity: 0.85; }
+  .add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 999;
+    transition: opacity 0.3s, transform 0.3s;
+    transform: translateY(10px);
+  }
+
+  .toast.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error { border-color: var(--accent); color: var(--accent); }
+
+  .empty-state {
+    text-align: center;
+    padding: 64px 32px;
+    color: var(--muted);
+    grid-column: 1 / -1;
+  }
+
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state p { font-size: 14px; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="logo" href="/shop">⚡ ShopIQ</a>
+  <div class="nav-right">
+    <a href="/cart-page" class="nav-btn outline">
+      🛒 Cart <span class="cart-count" id="cartCount">0</span>
+    </a>
+    <span id="userGreeting" style="font-size:13px;color:#52546a"></span>
+    <a href="/login-page" class="nav-btn primary" id="loginBtn">Login</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>Shop <span>Smarter</span> with ShopIQ</h1>
+  <p>AI-powered recommendations · Real-time pricing · Smart search</p>
+  <div class="search-bar">
+    <input class="search-input" id="searchInput"
+      placeholder="Try 'warm', 'gaming', 'formal'..."
+      onkeydown="if(event.key==='Enter') doSearch()">
+    <button class="search-btn" onclick="doSearch()">Search</button>
+  </div>
+</div>
+
+<div class="filters">
+  <span class="filter-label">Filter:</span>
+  <select id="categoryFilter" onchange="doSearch()">
+    <option value="">All Categories</option>
+    <option value="Electronics">Electronics</option>
+    <option value="Clothing">Clothing</option>
+    <option value="Footwear">Footwear</option>
+    <option value="Accessories">Accessories</option>
+  </select>
+  <select id="sortFilter" onchange="doSearch()">
+    <option value="newest">Newest</option>
+    <option value="price_low">Price: Low to High</option>
+    <option value="price_high">Price: High to Low</option>
+  </select>
+  <select id="priceFilter" onchange="doSearch()">
+    <option value="">Any Price</option>
+    <option value="0-500">Under ₹500</option>
+    <option value="500-2000">₹500 - ₹2000</option>
+    <option value="2000-10000">₹2000 - ₹10000</option>
+    <option value="10000-999999">Above ₹10000</option>
+  </select>
+</div>
+
+<div class="content">
+  <div class="results-info" id="resultsInfo"></div>
+  <div class="product-grid" id="productGrid">
+    <div class="empty-state">
+      <div class="icon">⏳</div>
+      <p>Loading products...</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const BASE = 'http://localhost:8000';
+  const token = localStorage.getItem('token');
+  const email = localStorage.getItem('email');
+
+  // User greeting
+  if (email) {
+    document.getElementById('userGreeting').textContent = 'Hi, ' + email.split('@')[0] + '!';
+    const btn = document.getElementById('loginBtn');
+    btn.textContent = 'Logout';
+    btn.onclick = function(e) {
+      e.preventDefault();
+      localStorage.clear();
+      window.location.reload();
+    };
+  }
+
+  const categoryEmoji = {
+    'electronics': '💻', 'clothing': '👕', 'footwear': '👟',
+    'accessories': '⌚', 'food': '🍔', 'books': '📚'
+  };
+
+  function getEmoji(category) {
+    if (!category) return '📦';
+    return categoryEmoji[category.toLowerCase()] || '📦';
+  }
+
+  let toastTimer = null;
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + (type || 'success');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { t.classList.remove('show'); }, 3000);
+  }
+
+  function renderProducts(products) {
+    const grid = document.getElementById('productGrid');
+    document.getElementById('resultsInfo').textContent =
+      products.length + ' product' + (products.length !== 1 ? 's' : '') + ' found';
+
+    if (!products.length) {
+      grid.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>No products found. Try a different search!</p></div>';
+      return;
+    }
+
+    grid.innerHTML = products.map(function(p) {
+      var stockClass = p.stock === 0 ? 'out' : p.stock < 5 ? 'low' : '';
+      var stockText = p.stock === 0 ? 'Out of stock' : p.stock < 5 ? 'Only ' + p.stock + ' left!' : p.stock + ' in stock';
+      var price = p.current_price || p.price || 0;
+      return '<div class="product-card" onclick="viewProduct(' + p.id + ')">' +
+        '<div class="product-img">' + getEmoji(p.category) + '</div>' +
+        '<div class="product-body">' +
+        '<div class="product-category">' + (p.category || 'General') + '</div>' +
+        '<div class="product-name">' + p.name + '</div>' +
+        '<div class="product-price">&#8377;' + price.toFixed(2) + '</div>' +
+        '<div class="product-stock ' + stockClass + '">' + stockText + '</div>' +
+        '<button class="add-btn" ' + (p.stock === 0 ? 'disabled' : '') +
+        ' onclick="event.stopPropagation(); addToCart(' + p.id + ', \'' + p.name.replace(/'/g, '') + '\')">' +
+        (p.stock === 0 ? 'Out of Stock' : '+ Add to Cart') +
+        '</button></div></div>';
+    }).join('');
+  }
+
+  function viewProduct(id) {
+    window.location.href = '/product-page?id=' + id;
+  }
+
+  async function doSearch() {
+    var q = document.getElementById('searchInput').value;
+    var category = document.getElementById('categoryFilter').value;
+    var sort = document.getElementById('sortFilter').value;
+    var price = document.getElementById('priceFilter').value;
+
+    var url = '/search/?sort_by=' + sort + '&limit=20';
+    if (q) url += '&q=' + encodeURIComponent(q);
+    if (category) url += '&category=' + encodeURIComponent(category);
+    if (price) {
+      var parts = price.split('-');
+      url += '&min_price=' + parts[0] + '&max_price=' + parts[1];
+    }
+
+    try {
+      var res = await fetch(BASE + url);
+      var products = await res.json();
+      renderProducts(products);
+    } catch(e) {
+      showToast('Could not load products', 'error');
+    }
+  }
+
+  async function loadProducts() {
+    try {
+      var res = await fetch(BASE + '/products/');
+      var products = await res.json();
+      renderProducts(products);
+    } catch(e) {
+      document.getElementById('productGrid').innerHTML =
+        '<div class="empty-state"><div class="icon">⚠️</div><p>Could not connect to API. Make sure server is running!</p></div>';
+    }
+  }
+
+  async function addToCart(productId, name) {
+    if (!token) {
+      showToast('Please login to add to cart', 'error');
+      setTimeout(function() { window.location.href = '/login-page'; }, 1500);
+      return;
+    }
+    try {
+      var res = await fetch(BASE + '/cart/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ product_id: productId, quantity: 1 })
+      });
+      var data = await res.json();
+      if (data.id) {
+        showToast('✓ ' + name + ' added to cart!');
+        updateCartCount();
+      } else {
+        showToast(data.detail || 'Could not add to cart', 'error');
+      }
+    } catch(e) {
+      showToast('Error adding to cart', 'error');
+    }
+  }
+
+  async function updateCartCount() {
+    if (!token) return;
+    try {
+      var res = await fetch(BASE + '/cart/', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      var cart = await res.json();
+      document.getElementById('cartCount').textContent = Array.isArray(cart) ? cart.length : 0;
+    } catch(e) {}
+  }
+
+  // Run once on load only
+  loadProducts();
+  updateCartCount();
+</script>
+</body>
+</html>

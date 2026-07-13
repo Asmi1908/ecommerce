@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Commerce Analytics Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #07080a;
+    --surface: #111218;
+    --border: #1c1d22;
+    --text: #eceef5;
+    --muted: #52546a;
+    --c1: #ff6b35;
+    --c2: #00d4aa;
+    --c3: #7b61ff;
+    --c4: #ffb830;
+    --c5: #ff6b9d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* Topbar */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-logo { font-size: 20px; font-weight: 700; color: var(--c1); }
+  .topbar-title { font-size: 14px; color: var(--muted); }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,212,170,0.08);
+    border: 1px solid rgba(0,212,170,0.2);
+    border-radius: 100px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--c2);
+  }
+
+  .live-dot {
+    width: 6px; height: 6px;
+    background: var(--c2);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .refresh-btn {
+    background: var(--c1);
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Segoe UI', sans-serif;
+    transition: opacity 0.2s;
+  }
+  .refresh-btn:hover { opacity: 0.85; }
+
+  /* Main content */
+  .main { padding: 32px; max-width: 1400px; margin: 0 auto; }
+
+  /* Section title */
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    margin-top: 32px;
+  }
+
+  /* Stats grid */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .stat-card:hover { transform: translateY(-2px); }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 80px; height: 80px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    opacity: 0.08;
+    border-radius: 50%;
+  }
+
+  .stat-icon { font-size: 20px; margin-bottom: 12px; }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .s1 { --accent: var(--c1); }
+  .s2 { --accent: var(--c2); }
+  .s3 { --accent: var(--c3); }
+  .s4 { --accent: var(--c4); }
+  .s5 { --accent: var(--c5); }
+  .s6 { --accent: #38bdf8; }
+
+  /* Charts */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .charts-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .chart-title { font-size: 14px; font-weight: 600; }
+  .chart-sub { font-size: 11px; color: var(--muted); }
+
+  /* Tables */
+  .tables-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 0;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    color: #c0c0d0;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+  }
+  .badge-green { background: rgba(0,212,170,0.1); color: var(--c2); }
+  .badge-orange { background: rgba(255,107,53,0.1); color: var(--c1); }
+  .badge-purple { background: rgba(123,97,255,0.1); color: var(--c3); }
+
+  /* Surge indicator */
+  .surge-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,184,48,0.1);
+    color: var(--c4);
+    border-radius: 100px;
+    padding: 2px 8px;
+    font-size: 10px;
+  }
+
+  /* Loading state */
+  .loading {
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    padding: 20px;
+  }
+
+  /* Error state */
+  .error-bar {
+    background: rgba(255,107,53,0.1);
+    border: 1px solid rgba(255,107,53,0.2);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 12px;
+    color: var(--c1);
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  /* Last updated */
+  .last-updated {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 24px;
+  }
+
+  @media (max-width: 768px) {
+    .charts-grid, .charts-grid-2, .tables-grid { grid-template-columns: 1fr; }
+    .main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">⚡ ShopIQ</div>
+    <div class="topbar-title">Analytics Dashboard</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      Live
+    </div>
+    <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Error bar -->
+  <div class="error-bar" id="errorBar">⚠ Could not connect to API. Make sure your server is running at localhost:8000</div>
+
+  <!-- Stats -->
+  <div class="section-title">Key Metrics</div>
+  <div class="stats">
+    <div class="stat-card s1">
+      <div class="stat-icon">💰</div>
+      <div class="stat-label">Total Revenue</div>
+      <div class="stat-value" id="revenue">—</div>
+      <div class="stat-sub">All confirmed orders</div>
+    </div>
+    <div class="stat-card s2">
+      <div class="stat-icon">👤</div>
+      <div class="stat-label">Total Users</div>
+      <div class="stat-value" id="users">—</div>
+      <div class="stat-sub">Registered accounts</div>
+    </div>
+    <div class="stat-card s3">
+      <div class="stat-icon">📦</div>
+      <div class="stat-label">Total Orders</div>
+      <div class="stat-value" id="orders">—</div>
+      <div class="stat-sub">Confirmed orders</div>
+    </div>
+    <div class="stat-card s4">
+      <div class="stat-icon">🛒</div>
+      <div class="stat-label">Abandoned Carts</div>
+      <div class="stat-value" id="abandoned">—</div>
+      <div class="stat-sub">Recovery opportunities</div>
+    </div>
+    <div class="stat-card s5">
+      <div class="stat-icon">📉</div>
+      <div class="stat-label">Abandonment Rate</div>
+      <div class="stat-value" id="abandonRate">—</div>
+      <div class="stat-sub">Cart to order ratio</div>
+    </div>
+    <div class="stat-card s6">
+      <div class="stat-icon">🔍</div>
+      <div class="stat-label">Total Searches</div>
+      <div class="stat-value" id="totalSearches">—</div>
+      <div class="stat-sub">Search events logged</div>
+    </div>
+  </div>
+
+  <!-- Main Charts -->
+  <div class="section-title">Activity & Search</div>
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">📈 Hourly User Activity</div>
+          <div class="chart-sub">Events logged per hour of day</div>
+        </div>
+      </div>
+      <canvas id="activityChart" height="120"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">🔍 Search Terms</div>
+          <div class="chart-sub">Most searched queries</div>
+        </div>
+      </div>
+      <canvas id="searchChart" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- Secondary Charts -->
+  <div class="section-title">Products & Recommendations</div>
+  <div class="charts-grid-2">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">🏆 Top Products by Views</div>
+          <div class="chart-sub">Most viewed products</div>
+        </div>
+      </div>
+      <canvas id="productsChart" height="160"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">🛒 Cart Abandonment</div>
+          <div class="chart-sub">Converted vs abandoned</div>
+        </div>
+      </div>
+      <canvas id="abandonChart" height="160"></canvas>
+    </div>
+  </div>
+
+  <!-- Tables -->
+  <div class="section-title">Detailed Data</div>
+  <div class="tables-grid">
+    <div class="table-card">
+      <div class="chart-title" style="margin-bottom:16px">🏆 Top Products</div>
+      <table>
+        <thead>
+          <tr><th>Product</th><th>Views</th><th>Status</th></tr>
+        </thead>
+        <tbody id="topProducts">
+          <tr><td colspan="3" class="loading">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-card">
+      <div class="chart-title" style="margin-bottom:16px">🛒 Abandonment Stats</div>
+      <table>
+        <thead>
+          <tr><th>Metric</th><th>Value</th></tr>
+        </thead>
+        <tbody id="abandonStats">
+          <tr><td colspan="2" class="loading">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="last-updated" id="lastUpdated">Never updated</div>
+
+</div>
+
+<script>
+  const BASE = 'http://localhost:8000';
+  let token = '';
+  let activityChart, searchChart, productsChart, abandonChart;
+
+  async function login() {
+    try {
+      const res = await fetch(`${BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'username=asmi2@gmail.com&password=test1234'
+      });
+      const data = await res.json();
+      token = data.access_token;
+      document.getElementById('errorBar').style.display = 'none';
+    } catch(e) {
+      document.getElementById('errorBar').style.display = 'block';
+    }
+  }
+
+  async function apiFetch(url) {
+    const res = await fetch(`${BASE}${url}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return res.json();
+  }
+
+  const chartDefaults = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#52546a', font: { size: 11 } }, grid: { color: '#1c1d22' } },
+      y: { ticks: { color: '#52546a', font: { size: 11 } }, grid: { color: '#1c1d22' } }
+    }
+  };
+
+  async function loadStats() {
+    try {
+      const [revenue, users, abandon, searches] = await Promise.all([
+        apiFetch('/analytics/revenue'),
+        apiFetch('/analytics/users'),
+        apiFetch('/analytics/abandonment-stats'),
+        apiFetch('/analytics/search-terms'),
+      ]);
+
+      document.getElementById('revenue').textContent = '₹' + (revenue.total_revenue || 0).toFixed(2);
+      document.getElementById('users').textContent = users.total_users || 0;
+      document.getElementById('orders').textContent = abandon.total_orders || 0;
+      document.getElementById('abandoned').textContent = abandon.total_abandoned_carts || 0;
+      document.getElementById('abandonRate').textContent = abandon.abandonment_rate || '0%';
+      document.getElementById('totalSearches').textContent = searches.reduce((a, b) => a + b.count, 0);
+
+      document.getElementById('abandonStats').innerHTML = `
+        <tr><td>Total Carts</td><td><span class="badge badge-orange">${abandon.total_abandoned_carts || 0}</span></td></tr>
+        <tr><td>Converted to Orders</td><td><span class="badge badge-green">${abandon.total_orders || 0}</span></td></tr>
+        <tr><td>Abandonment Rate</td><td><span class="badge badge-purple">${abandon.abandonment_rate || '0%'}</span></td></tr>
+        <tr><td>Recovery Opportunity</td><td><span class="badge badge-orange">${abandon.recovery_opportunity || 0}</span></td></tr>
+      `;
+
+      // Abandonment pie chart
+      if (abandonChart) abandonChart.destroy();
+      abandonChart = new Chart(document.getElementById('abandonChart'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Converted', 'Abandoned'],
+          datasets: [{
+            data: [abandon.total_orders || 0, abandon.total_abandoned_carts || 0],
+            backgroundColor: ['#00d4aa', '#ff6b35'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#52546a', padding: 16, font: { size: 11 } } }
+          }
+        }
+      });
+
+    } catch(e) { console.log('Stats error:', e); }
+  }
+
+  async function loadActivity() {
+    try {
+      const data = await apiFetch('/analytics/hourly-activity');
+      const labels = data.map(d => `${d.hour}:00`);
+      const values = data.map(d => d.events);
+
+      if (activityChart) activityChart.destroy();
+      activityChart = new Chart(document.getElementById('activityChart'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Events',
+            data: values,
+            backgroundColor: 'rgba(123,97,255,0.5)',
+            borderColor: '#7b61ff',
+            borderWidth: 1,
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: { ...chartDefaults, plugins: { legend: { display: false } } }
+      });
+    } catch(e) { console.log('Activity error:', e); }
+  }
+
+  async function loadSearchTerms() {
+    try {
+      const data = await apiFetch('/analytics/search-terms');
+      const labels = data.map(d => d.term.replace('query:', '').split(',')[0]);
+      const values = data.map(d => d.count);
+
+      if (searchChart) searchChart.destroy();
+      searchChart = new Chart(document.getElementById('searchChart'), {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: ['#ff6b35','#00d4aa','#7b61ff','#ffb830','#ff6b9d','#38bdf8'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#52546a', padding: 12, font: { size: 11 } } }
+          }
+        }
+      });
+    } catch(e) { console.log('Search error:', e); }
+  }
+
+  async function loadTopProducts() {
+    try {
+      const data = await apiFetch('/analytics/top-products');
+      const labels = data.map((d, i) => `Product ${i+1}`);
+      const values = data.map(d => d.views);
+
+      // Bar chart for top products
+      if (productsChart) productsChart.destroy();
+      productsChart = new Chart(document.getElementById('productsChart'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Views',
+            data: values,
+            backgroundColor: ['#ff6b35','#00d4aa','#7b61ff','#ffb830','#ff6b9d',
+                             '#38bdf8','#ff6b35','#00d4aa','#7b61ff','#ffb830'],
+            borderWidth: 0,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          ...chartDefaults,
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#52546a' }, grid: { color: '#1c1d22' } },
+            y: { ticks: { color: '#52546a' }, grid: { display: false } }
+          }
+        }
+      });
+
+      // Table
+      document.getElementById('topProducts').innerHTML = data.length
+        ? data.map((p, i) => `
+          <tr>
+            <td>${p.product.replace('product_id:', 'Product #')}</td>
+            <td><span class="badge badge-green">${p.views}</span></td>
+            <td><span class="badge badge-purple">#${i+1}</span></td>
+          </tr>`).join('')
+        : '<tr><td colspan="3" class="loading">No data yet — view some products!</td></tr>';
+
+    } catch(e) { console.log('Products error:', e); }
+  }
+
+  async function loadAll() {
+    await login();
+    await Promise.all([
+      loadStats(),
+      loadActivity(),
+      loadSearchTerms(),
+      loadTopProducts()
+    ]);
+    document.getElementById('lastUpdated').textContent =
+      'Last updated: ' + new Date().toLocaleTimeString();
+  }
+
+  loadAll();
+  setInterval(loadAll, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopIQ — Login</title>
+<style>
+  :root {
+    --bg: #07080a;
+    --surface: #111218;
+    --border: #1c1d22;
+    --text: #eceef5;
+    --muted: #52546a;
+    --accent: #ff6b35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 400px;
+    padding: 24px;
+  }
+
+  .logo {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .tagline {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 28px;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 4px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 6px;
+    color: var(--muted);
+    transition: all 0.2s;
+    border: none;
+    background: transparent;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .tab.active {
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+  }
+
+  .form { display: none; }
+  .form.active { display: block; }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Segoe UI', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus { border-color: var(--accent); }
+
+  .btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+    margin-top: 8px;
+    transition: opacity 0.2s;
+  }
+
+  .btn:hover { opacity: 0.85; }
+
+  .error {
+    background: rgba(255,107,53,0.1);
+    border: 1px solid rgba(255,107,53,0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .success {
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #00d4aa;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .shop-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .shop-link a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="logo">⚡ ShopIQ</div>
+  <div class="tagline">Your smart shopping destination</div>
+
+  <div class="card">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">Login</button>
+      <button class="tab" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- Error / Success -->
+    <div class="error" id="errorMsg"></div>
+    <div class="success" id="successMsg"></div>
+
+    <!-- Login Form -->
+    <div class="form active" id="loginForm">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+      <button class="btn" onclick="login()">Login →</button>
+    </div>
+
+    <!-- Register Form -->
+    <div class="form" id="registerForm">
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="Asmi">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="••••••••">
+      </div>
+      <button class="btn" onclick="register()">Create Account →</button>
+    </div>
+  </div>
+
+  <div class="shop-link">
+    <a href="/shop">← Browse without logging in</a>
+  </div>
+</div>
+
+<script>
+  const BASE = 'http://localhost:8000';
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById(tab + 'Form').classList.add('active');
+    hideMessages();
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+    document.getElementById('successMsg').style.display = 'none';
+  }
+
+  function showSuccess(msg) {
+    const el = document.getElementById('successMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+    document.getElementById('errorMsg').style.display = 'none';
+  }
+
+  function hideMessages() {
+    document.getElementById('errorMsg').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'none';
+  }
+
+  async function login() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) return showError('Please fill in all fields');
+
+    try {
+      const res = await fetch(`${BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+      });
+      const data = await res.json();
+      if (data.access_token) {
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('email', email);
+        showSuccess('Login successful! Redirecting...');
+        setTimeout(() => window.location.href = '/shop', 1000);
+      } else {
+        showError('Invalid email or password');
+      }
+    } catch(e) {
+      showError('Could not connect to server');
+    }
+  }
+
+  async function register() {
+    const name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    if (!name || !email || !password) return showError('Please fill in all fields');
+
+    try {
+      const res = await fetch(`${BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await res.json();
+      if (data.id) {
+        showSuccess('Account created! Please login.');
+        setTimeout(() => switchTab('login'), 1500);
+      } else {
+        showError(data.detail || 'Registration failed');
+      }
+    } catch(e) {
+      showError('Could not connect to server');
+    }
+  }
+
+  // Check if already logged in
+  if (localStorage.getItem('token')) {
+    window.location.href = '/shop';
+  }
+</script>
+</body>
+</html>
