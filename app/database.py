@@ -14,7 +14,12 @@ DATABASE_URL = (
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    connect_args={"ssl": {"ca": "/etc/ssl/certs/ca-certificates.crt"}}
+    connect_args={
+        "ssl": {
+            "ssl_mode": "REQUIRED",
+            "check_hostname": False
+        }
+    }
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
